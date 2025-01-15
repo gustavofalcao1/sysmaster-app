@@ -1,40 +1,40 @@
 # SysMaster
 
-SysMaster é uma aplicação web moderna para gerenciamento de dispositivos, usuários e grupos em uma rede corporativa.
+A modern web application for managing devices, users, and groups in a corporate network.
 
 ## Features
 
-- 🔐 **Autenticação e Autorização**
-  - Login seguro
-  - Roles (admin/user)
-  - Proteção de rotas
+- 🔐 **Authentication & Authorization**
+  - Secure login
+  - Role-based access (admin/user)
+  - Protected routes
 
-- 👥 **Gerenciamento de Usuários**
-  - Criação e edição de usuários
-  - Atribuição de roles
-  - Associação com devices
+- 👥 **User Management**
+  - User creation and editing
+  - Role assignment
+  - Device association
 
-- 🏢 **Gerenciamento de Grupos**
-  - Organização de devices
-  - Prefixos automáticos
-  - Gerenciamento de localização
+- 🏢 **Group Management**
+  - Device organization
+  - Automatic prefixes
+  - Location management
 
-- 💻 **Gerenciamento de Devices**
-  - Status em tempo real
-  - Especificações técnicas
-  - Associação com grupos e usuários
+- 💻 **Device Management**
+  - Real-time status
+  - Technical specifications
+  - Group and user association
 
 - 📊 **Dashboard**
-  - Estatísticas gerais
-  - Status dos devices
-  - Atividades recentes
+  - General statistics
+  - Device status
+  - Recent activities
 
-- 💾 **Persistência de Dados**
-  - Armazenamento em JSON
-  - Cache em localStorage
-  - API REST para manipulação
+- 💾 **Data Storage**
+  - JSON file storage
+  - localStorage cache
+  - REST API
 
-## Tecnologias
+## Technologies
 
 - ⚛️ **Frontend**
   - Next.js 13 (App Router)
@@ -43,101 +43,101 @@ SysMaster é uma aplicação web moderna para gerenciamento de dispositivos, usu
   - Phosphor Icons
 
 - 🎨 **UI/UX**
-  - Design responsivo
-  - Tema dark/light
-  - Componentes reutilizáveis
+  - Responsive design
+  - Dark/light theme
+  - Reusable components
 
 - 🔧 **Backend**
   - Next.js API Routes
-  - Sistema de arquivos local
-  - Cache em localStorage
+  - Local file system
+  - localStorage cache
 
-## Começando
+## Getting Started
 
-### Pré-requisitos
+### Prerequisites
 
 - Node.js 18+
 - Yarn
 
-### Instalação
+### Installation
 
-1. Clone o repositório:
+1. Clone the repository:
 ```bash
 git clone https://github.com/gustavofalcao1/sysmaster-app.git
 cd sysmaster-app
 ```
 
-2. Instale as dependências:
+2. Install dependencies:
 ```bash
 yarn install
 ```
 
-3. Inicie o servidor de desenvolvimento:
+3. Start development server:
 ```bash
 yarn dev
 ```
 
-4. Acesse http://localhost:3000
+4. Access http://localhost:3000
 
-### Credenciais de Teste
+### Test Credentials
 
 - Admin
   - Username: admin
   - Password: admin123
 
-## Estrutura do Projeto
+## Project Structure
 
 ```
 src/
-  ├── app/              # Páginas e API routes
-  │   ├── api/         # Endpoints da API
-  │   └── ...          # Páginas da aplicação
-  ├── components/       # Componentes reutilizáveis
-  │   ├── layout/      # Componentes de layout
-  │   └── ui/          # Componentes de UI
-  ├── context/         # Contextos React
-  ├── data/            # Arquivos JSON de dados
-  ├── lib/             # Utilitários e serviços
-  ├── styles/          # Estilos globais
-  └── types/           # Definições de tipos
+  ├── app/              # Pages and API routes
+  │   ├── api/         # API endpoints
+  │   └── ...          # Application pages
+  ├── components/       # Reusable components
+  │   ├── layout/      # Layout components
+  │   └── ui/          # UI components
+  ├── context/         # React contexts
+  ├── data/            # JSON data files
+  ├── lib/             # Utilities and services
+  ├── styles/          # Global styles
+  └── types/           # Type definitions
 ```
 
-## Desenvolvimento
+## Development
 
-### Scripts Disponíveis
+### Available Scripts
 
-- `yarn dev` - Inicia o servidor de desenvolvimento
-- `yarn build` - Cria a build de produção
-- `yarn start` - Inicia o servidor de produção
-- `yarn lint` - Executa o linter
-- `yarn format` - Formata o código
+- `yarn dev` - Start development server
+- `yarn build` - Create production build
+- `yarn start` - Start production server
+- `yarn lint` - Run linter
+- `yarn format` - Format code
 
-## Estado Atual
+## Current Status
 
-### Implementado
-- ✅ Sistema de autenticação
-- ✅ CRUD de usuários
-- ✅ CRUD de grupos
-- ✅ CRUD de devices
-- ✅ Dashboard com estatísticas
-- ✅ Persistência de dados em JSON
-- ✅ Cache em localStorage
-- ✅ API REST
+### Implemented
+- ✅ Authentication system
+- ✅ User CRUD
+- ✅ Group CRUD
+- ✅ Device CRUD
+- ✅ Dashboard with statistics
+- ✅ JSON data persistence
+- ✅ localStorage cache
+- ✅ REST API
 
-### Em Desenvolvimento
-- 🚧 Atualizações em tempo real
-- 🚧 Sistema de notificações
-- 🚧 Monitoramento avançado de devices
-- 🚧 Métricas de performance
+### In Development
+- 🚧 Real-time updates
+- 🚧 Notification system
+- 🚧 Advanced device monitoring
+- 🚧 Performance metrics
 
-## Contribuindo
+## Contributing
 
-1. Faça um fork do projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
+1. Fork the project
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-## Licença
+## License
 
-Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

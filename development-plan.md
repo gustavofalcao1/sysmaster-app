@@ -45,13 +45,13 @@
 
 ## Sprint 4: Data Persistence 
 - [x] Local Storage
-  - [x] Cache para performance
-  - [x] Sincronização com backend
+  - [x] Performance caching
+  - [x] Backend sync
 
 - [x] JSON Storage
-  - [x] Estrutura de arquivos JSON
-  - [x] API para manipulação
-  - [x] Consistência de dados
+  - [x] JSON file structure
+  - [x] API for data manipulation
+  - [x] Data consistency
 
 ## Sprint 5: Advanced Features 
 - [ ] Real-time updates
@@ -121,30 +121,29 @@
    - Historical data
 
 ### Next Steps 
-1. Implementar WebSocket para atualizações em tempo real
-2. Desenvolver sistema de notificações push
-3. Adicionar métricas de performance dos devices
-4. Criar sistema de alertas
-5. Implementar logs de auditoria
-6. Adicionar testes automatizados
-7. Melhorar documentação da API
-8. Otimizar performance do frontend
+1. Implement WebSocket for real-time updates
+2. Develop push notification system
+3. Add device performance metrics
+4. Create alert system
+5. Implement audit logs
+6. Add automated tests
+7. Improve API documentation
+8. Optimize frontend performance
 
 ### Backlog 
-1. Autenticação via OAuth
-2. Backup automático dos dados
-3. Exportação de relatórios
-4. Integração com serviços externos
-5. Customização avançada do dashboard
-6. Suporte a múltiplos idiomas
+1. OAuth authentication
+2. Automatic data backup
+3. Report exports
+4. External service integrations
+5. Advanced dashboard customization
+6. Multiple language support
 7. PWA (Progressive Web App)
-8. Modo offline
+8. Offline mode
 
 ### Guidelines
 - Write code in TypeScript
 - Use Yarn for package management
 - Write code, docs, and comments in English
-- UI/UX communication in Portuguese
 - Follow component-based architecture
 - Maintain clean and organized code structure
 
