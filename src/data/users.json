@@ -1,0 +1,16 @@
+{
+  "users": [
+    {
+      "id": "user1",
+      "name": "Admin User",
+      "username": "admin",
+      "password": "admin123",
+      "role": "admin",
+      "deviceIds": [
+        "device1"
+      ],
+      "createdAt": "2025-01-15T18:02:59Z",
+      "updatedAt": "2025-01-15T18:02:59Z"
+    }
+  ]
+}

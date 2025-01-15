@@ -1,101 +1,267 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import React from 'react';
+import styled from 'styled-components';
+import {
+  DeviceTablet,
+  Users,
+  UsersThree,
+  ChartLine,
+  CloudCheck,
+  CloudSlash,
+  Clock,
+} from '@phosphor-icons/react';
+import { db } from '@/lib/database';
+import { Card } from '@/components/ui/Card';
+
+const DashboardContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.xl};
+`;
+
+const StatsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: ${({ theme }) => theme.spacing.lg};
+`;
+
+const StatCard = styled(Card)`
+  padding: ${({ theme }) => theme.spacing.lg};
+`;
+
+const StatHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.md};
+  margin-bottom: ${({ theme }) => theme.spacing.md};
+  
+  svg {
+    width: 24px;
+    height: 24px;
+    color: ${({ theme }) => theme.colors.primary};
+  }
+`;
+
+const StatTitle = styled.h3`
+  margin: 0;
+  color: ${({ theme }) => theme.colors.text.secondary};
+  font-size: 0.875rem;
+  font-weight: 500;
+`;
+
+const StatValue = styled.div`
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.text.primary};
+`;
+
+const ChartsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: ${({ theme }) => theme.spacing.lg};
+`;
+
+const ChartCard = styled(Card)`
+  padding: ${({ theme }) => theme.spacing.lg};
+  min-height: 300px;
+`;
+
+const ChartHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
+`;
+
+const ChartTitle = styled.h3`
+  margin: 0;
+  color: ${({ theme }) => theme.colors.text.primary};
+  font-size: 1rem;
+  font-weight: 500;
+`;
+
+const DeviceStatusList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.md};
+`;
+
+const DeviceStatusItem = styled.div<{ status: string }>`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: ${({ theme }) => theme.spacing.md};
+  background: ${({ status, theme }) => {
+    switch (status) {
+      case 'online':
+        return theme.colors.success + '10';
+      case 'offline':
+        return theme.colors.error + '10';
+      default:
+        return theme.colors.warning + '10';
+    }
+  }};
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+
+  div {
+    display: flex;
+    align-items: center;
+    gap: ${({ theme }) => theme.spacing.md};
+    
+    svg {
+      color: ${({ status, theme }) => {
+        switch (status) {
+          case 'online':
+            return theme.colors.success;
+          case 'offline':
+            return theme.colors.error;
+          default:
+            return theme.colors.warning;
+        }
+      }};
+    }
+  }
+`;
+
+const RecentActivityList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.md};
+`;
+
+const ActivityItem = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.md};
+  padding: ${({ theme }) => theme.spacing.md};
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  background: ${({ theme }) => theme.colors.background.light};
+
+  svg {
+    color: ${({ theme }) => theme.colors.primary};
+  }
+
+  div {
+    display: flex;
+    flex-direction: column;
+    gap: ${({ theme }) => theme.spacing.xs};
+
+    span:first-child {
+      color: ${({ theme }) => theme.colors.text.primary};
+      font-weight: 500;
+    }
+
+    span:last-child {
+      color: ${({ theme }) => theme.colors.text.secondary};
+      font-size: 0.875rem;
+    }
+  }
+`;
+
+export default function DashboardPage() {
+  const devices = db.getDevices();
+  const users = db.getUsers();
+  const groups = db.getGroups();
+
+  const onlineDevices = devices.filter(d => d.status === 'online');
+  const offlineDevices = devices.filter(d => d.status === 'offline');
+  const pendingDevices = devices.filter(d => d.status === 'pending');
+
+  const recentDevices = [...devices]
+    .sort((a, b) => new Date(b.lastActive).getTime() - new Date(a.lastActive).getTime())
+    .slice(0, 5);
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <DashboardContainer>
+      <StatsGrid>
+        <StatCard>
+          <StatHeader>
+            <DeviceTablet weight="fill" />
+            <StatTitle>Total Devices</StatTitle>
+          </StatHeader>
+          <StatValue>{devices.length}</StatValue>
+        </StatCard>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+        <StatCard>
+          <StatHeader>
+            <Users weight="fill" />
+            <StatTitle>Total Users</StatTitle>
+          </StatHeader>
+          <StatValue>{users.length}</StatValue>
+        </StatCard>
+
+        <StatCard>
+          <StatHeader>
+            <UsersThree weight="fill" />
+            <StatTitle>Total Groups</StatTitle>
+          </StatHeader>
+          <StatValue>{groups.length}</StatValue>
+        </StatCard>
+
+        <StatCard>
+          <StatHeader>
+            <ChartLine weight="fill" />
+            <StatTitle>Device Availability</StatTitle>
+          </StatHeader>
+          <StatValue>
+            {devices.length > 0
+              ? Math.round((onlineDevices.length / devices.length) * 100)
+              : 0}
+            %
+          </StatValue>
+        </StatCard>
+      </StatsGrid>
+
+      <ChartsGrid>
+        <ChartCard>
+          <ChartHeader>
+            <ChartTitle>Device Status</ChartTitle>
+          </ChartHeader>
+          <DeviceStatusList>
+            <DeviceStatusItem status="online">
+              <div>
+                <CloudCheck weight="fill" />
+                <span>Online</span>
+              </div>
+              <span>{onlineDevices.length} devices</span>
+            </DeviceStatusItem>
+            
+            <DeviceStatusItem status="offline">
+              <div>
+                <CloudSlash weight="fill" />
+                <span>Offline</span>
+              </div>
+              <span>{offlineDevices.length} devices</span>
+            </DeviceStatusItem>
+
+            <DeviceStatusItem status="pending">
+              <div>
+                <Clock weight="fill" />
+                <span>Pending</span>
+              </div>
+              <span>{pendingDevices.length} devices</span>
+            </DeviceStatusItem>
+          </DeviceStatusList>
+        </ChartCard>
+
+        <ChartCard>
+          <ChartHeader>
+            <ChartTitle>Recent Activity</ChartTitle>
+          </ChartHeader>
+          <RecentActivityList>
+            {recentDevices.map(device => (
+              <ActivityItem key={device.id}>
+                <DeviceTablet weight="fill" />
+                <div>
+                  <span>{device.displayName}</span>
+                  <span>Last active {new Date(device.lastActive).toLocaleString()}</span>
+                </div>
+              </ActivityItem>
+            ))}
+          </RecentActivityList>
+        </ChartCard>
+      </ChartsGrid>
+    </DashboardContainer>
   );
 }
