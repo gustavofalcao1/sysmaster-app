@@ -1,143 +1,168 @@
-# SysMaster
+# 🖥️ SysMaster
 
-A modern web application for managing devices, users, and groups in a corporate network.
+**SysMaster** is a modern, feature-rich web application designed to simplify the management of devices, users, and groups within corporate networks. Built with Next.js, it provides secure and efficient administration through a sleek, intuitive interface.
 
-## Features
+---
 
-- 🔐 **Authentication & Authorization**
-  - Secure login
-  - Role-based access (admin/user)
-  - Protected routes
+## ✨ Features
 
-- 👥 **User Management**
-  - User creation and editing
-  - Role assignment
-  - Device association
+### 🔐 Authentication & Authorization
+- Secure user login
+- Role-based access control (admin/user)
+- Protected routes and content
 
-- 🏢 **Group Management**
-  - Device organization
-  - Automatic prefixes
-  - Location management
+### 👥 User Management
+- Create, edit, and delete users
+- Assign roles and permissions
+- Link users to specific devices
 
-- 💻 **Device Management**
-  - Real-time status
-  - Technical specifications
-  - Group and user association
+### 🏢 Group Management
+- Device organization into logical groups
+- Automated prefix assignment
+- Location tracking and management
 
-- 📊 **Dashboard**
-  - General statistics
-  - Device status
-  - Recent activities
+### 💻 Device Management
+- Real-time device status monitoring
+- Detailed technical specifications
+- User and group associations
 
-- 💾 **Data Storage**
-  - JSON file storage
-  - localStorage cache
-  - REST API
+### 📊 Dashboard
+- Overview statistics
+- Device status insights
+- Activity logs and recent updates
 
-## Technologies
+### 💾 Data Storage
+- JSON file-based storage
+- localStorage caching
+- RESTful API integration
 
-- ⚛️ **Frontend**
-  - Next.js 13 (App Router)
-  - TypeScript
-  - Styled Components
-  - Phosphor Icons
+---
 
-- 🎨 **UI/UX**
-  - Responsive design
-  - Dark/light theme
-  - Reusable components
+## 🛠️ Technology Stack
 
-- 🔧 **Backend**
-  - Next.js API Routes
-  - Local file system
-  - localStorage cache
+### ⚛️ Frontend
+- Next.js 13 (App Router)
+- TypeScript
+- Styled Components
+- Phosphor Icons
 
-## Getting Started
+### 🎨 UI/UX
+- Fully responsive design
+- Dark and light themes
+- Component-based architecture
 
-### Prerequisites
+### 🔧 Backend
+- Next.js API Routes
+- Local JSON data storage
+- Client-side caching (localStorage)
 
+---
+
+## 🚀 Getting Started
+
+### 📋 Prerequisites
 - Node.js 18+
-- Yarn
+- Yarn package manager
 
-### Installation
+### 📦 Installation
 
-1. Clone the repository:
+Clone the repository:
 ```bash
 git clone https://github.com/gustavofalcao1/sysmaster-app.git
 cd sysmaster-app
 ```
 
-2. Install dependencies:
+Install dependencies:
 ```bash
 yarn install
 ```
 
-3. Start development server:
+Run the development server:
 ```bash
 yarn dev
 ```
 
-4. Access http://localhost:3000
+Visit the app:
+- [http://localhost:3000](http://localhost:3000)
 
-### Test Credentials
+---
 
-- Admin
-  - Username: admin
-  - Password: admin123
+## 🔑 Test Credentials
+- **Admin:**
+  - Username: `admin`
+  - Password: `admin123`
 
-## Project Structure
+---
+
+## 📂 Project Structure
 
 ```
 src/
-  ├── app/              # Pages and API routes
-  │   ├── api/         # API endpoints
-  │   └── ...          # Application pages
-  ├── components/       # Reusable components
-  │   ├── layout/      # Layout components
-  │   └── ui/          # UI components
-  ├── context/         # React contexts
-  ├── data/            # JSON data files
-  ├── lib/             # Utilities and services
-  ├── styles/          # Global styles
-  └── types/           # Type definitions
+  ├── app/            # Application pages and API routes
+  │   ├── api/        # Backend API endpoints
+  │   └── ...         # Next.js App Router pages
+  ├── components/     # UI and layout components
+  │   ├── layout/     # Layout-specific components
+  │   └── ui/         # Reusable UI elements
+  ├── context/        # React Context providers
+  ├── data/           # JSON data storage
+  ├── lib/            # Utility functions and services
+  ├── styles/         # Global styling and themes
+  └── types/          # TypeScript definitions
 ```
 
-## Development
+---
 
-### Available Scripts
+## 🧑‍💻 Development
 
-- `yarn dev` - Start development server
-- `yarn build` - Create production build
-- `yarn start` - Start production server
-- `yarn lint` - Run linter
-- `yarn format` - Format code
+### 📜 Available Scripts
+- `yarn dev` - Run development server
+- `yarn build` - Create optimized production build
+- `yarn start` - Start the production server
+- `yarn lint` - Lint and check code quality
+- `yarn format` - Format codebase
 
-## Current Status
+---
 
-### Implemented
-- ✅ Authentication system
-- ✅ User CRUD
-- ✅ Group CRUD
-- ✅ Device CRUD
-- ✅ Dashboard with statistics
-- ✅ JSON data persistence
-- ✅ localStorage cache
-- ✅ REST API
+## 📈 Current Development Status
 
-### In Development
-- 🚧 Real-time updates
-- 🚧 Notification system
-- 🚧 Advanced device monitoring
-- 🚧 Performance metrics
+### ✅ Implemented
+- User authentication
+- User, group, and device CRUD
+- Dashboard with key statistics
+- JSON-based data persistence
+- REST API endpoints
+- Client-side caching (localStorage)
 
-## Contributing
+### 🚧 In Development
+- Real-time system updates
+- Notification infrastructure
+- Advanced monitoring of devices
+- Performance and analytics features
 
-1. Fork the project
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
+---
+
+## 🤝 Contributing
+
+Contributions are encouraged and welcome:
+
+1. Fork the repository
+2. Create your branch (`git checkout -b feature/YourFeature`)
+3. Commit your changes (`git commit -m 'Add feature'`)
+4. Push your branch (`git push origin feature/YourFeature`)
 5. Open a Pull Request
 
-## License
+---
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## 📄 License
+
+Licensed under the **MIT License**. Refer to [LICENSE](LICENSE) for more information.
+
+---
+
+## 👤 Author
+**Gustavo Falcão**  
+[GitHub @gustavofalcao1](https://github.com/gustavofalcao1)  
+[Project Repository](https://github.com/gustavofalcao1/sysmaster-app)
+
+---
