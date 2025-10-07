@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import {
   DeviceTablet,
@@ -160,9 +160,37 @@ const ActivityItem = styled.div`
 `;
 
 export default function DashboardPage() {
-  const devices = db.getDevices();
-  const users = db.getUsers();
-  const groups = db.getGroups();
+  const [loading, setLoading] = useState(true);
+  const [devices, setDevices] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [groups, setGroups] = useState([]);
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        setLoading(true);
+        const [devicesData, usersData, groupsData] = await Promise.all([
+          db.getDevices(),
+          db.getUsers(),
+          db.getGroups()
+        ]);
+        
+        setDevices(devicesData);
+        setUsers(usersData);
+        setGroups(groupsData);
+      } catch (error) {
+        console.error('Error loading data:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadData();
+  }, []);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   const onlineDevices = devices.filter(d => d.status === 'online');
   const offlineDevices = devices.filter(d => d.status === 'offline');

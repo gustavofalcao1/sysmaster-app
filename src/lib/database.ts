@@ -1,7 +1,4 @@
 import {
-  User,
-  Group,
-  Device,
   CreateUserInput,
   UpdateUserInput,
   CreateGroupInput,
@@ -11,409 +8,273 @@ import {
   FilterOptions,
   SortOptions,
 } from '@/types';
+import { prisma } from './prisma';
+import { Prisma } from '@prisma/client';
 
-// Função auxiliar para gerar IDs únicos
-const generateId = (): string => Math.random().toString(36).substr(2, 9);
+// Helper function to get base URL
+const getBaseUrl = () => {
+  if (typeof window !== 'undefined') return ''; // browser should use relative url
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`; // SSR should use vercel url
+  return `http://localhost:${process.env.PORT ?? 3000}`; // dev SSR should use localhost
+};
 
-// Função auxiliar para timestamp atual
-const now = (): string => new Date().toISOString();
-
-// Função para verificar se está rodando no cliente
-const isClient = typeof window !== 'undefined';
-
-// Função para carregar dados da API
-async function loadData(entity: string) {
-  try {
-    const response = await fetch(`/api/data?entity=${entity}`);
-    if (!response.ok) throw new Error('Failed to load data');
-    const data = await response.json();
-    return data[entity] || [];
-  } catch (error) {
-    console.error(`Error loading ${entity}:`, error);
-    return [];
-  }
-}
-
-// Função para salvar dados via API
-async function saveData(entity: string, data: any[]) {
-  try {
-    const response = await fetch('/api/data', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        entity,
-        data: { [entity]: data },
-      }),
-    });
-    if (!response.ok) throw new Error('Failed to save data');
-  } catch (error) {
-    console.error(`Error saving ${entity}:`, error);
-  }
-}
-
-// Classe para gerenciar os dados
-export class Database {
-  private users: User[] = [];
-  private groups: Group[] = [];
-  private devices: Device[] = [];
-
-  constructor() {
-    // Carrega dados iniciais
-    this.loadInitialData();
-  }
-
-  private async loadInitialData() {
-    // Tenta carregar do localStorage primeiro (apenas no cliente)
-    if (isClient) {
-      const savedUsers = localStorage.getItem('users');
-      const savedGroups = localStorage.getItem('groups');
-      const savedDevices = localStorage.getItem('devices');
-
-      if (savedUsers && savedGroups && savedDevices) {
-        this.users = JSON.parse(savedUsers);
-        this.groups = JSON.parse(savedGroups);
-        this.devices = JSON.parse(savedDevices);
-        return;
-      }
-    }
-
-    // Se não houver dados no localStorage ou estiver no servidor, carrega da API
-    this.users = await loadData('users');
-    this.groups = await loadData('groups');
-    this.devices = await loadData('devices');
-
-    // Salva no localStorage (apenas no cliente)
-    if (isClient) {
-      localStorage.setItem('users', JSON.stringify(this.users));
-      localStorage.setItem('groups', JSON.stringify(this.groups));
-      localStorage.setItem('devices', JSON.stringify(this.devices));
-    }
-  }
-
-  // Método para salvar dados
-  private async saveData() {
-    // Salva no localStorage (apenas no cliente)
-    if (isClient) {
-      localStorage.setItem('users', JSON.stringify(this.users));
-      localStorage.setItem('groups', JSON.stringify(this.groups));
-      localStorage.setItem('devices', JSON.stringify(this.devices));
-    }
-
-    // Salva via API
-    await Promise.all([
-      saveData('users', this.users),
-      saveData('groups', this.groups),
-      saveData('devices', this.devices),
-    ]);
-  }
-
-  // Métodos auxiliares
-  private applyFilters<T extends User | Group | Device>(
-    items: T[],
-    filters: FilterOptions
-  ): T[] {
-    return items.filter((item) => {
-      if (filters.search) {
-        const searchTerm = filters.search.toLowerCase();
-        const searchableFields = Object.values(item).filter(
-          (value) => typeof value === 'string'
-        ) as string[];
-        if (!searchableFields.some((field) => field.toLowerCase().includes(searchTerm))) {
-          return false;
-        }
-      }
-
-      if ('status' in item && filters.status && item.status !== filters.status) {
-        return false;
-      }
-
-      if ('role' in item && filters.role && item.role !== filters.role) {
-        return false;
-      }
-
-      if ('groupId' in item && filters.groupId && item.groupId !== filters.groupId) {
-        return false;
-      }
-
-      if ('userId' in item && filters.userId && item.userId !== filters.userId) {
-        return false;
-      }
-
-      return true;
-    });
-  }
-
-  private applySorting<T>(items: T[], sort: SortOptions): T[] {
-    return [...items].sort((a, b) => {
-      const aValue = a[sort.field as keyof T];
-      const bValue = b[sort.field as keyof T];
-
-      if (typeof aValue === 'string' && typeof bValue === 'string') {
-        return sort.direction === 'asc'
-          ? aValue.localeCompare(bValue)
-          : bValue.localeCompare(aValue);
-      }
-
-      return 0;
-    });
-  }
-
+class Database {
   // Users
-  getUsers(filters?: FilterOptions, sort?: SortOptions): User[] {
-    let filteredUsers = filters ? this.applyFilters(this.users, filters) : this.users;
-    return sort ? this.applySorting(filteredUsers, sort) : filteredUsers;
-  }
-
-  getUserById(id: string): User | undefined {
-    return this.users.find((user) => user.id === id);
-  }
-
-  getUserByUsername(username: string): User | undefined {
-    return this.users.find((user) => user.username === username);
-  }
-
-  async createUser(input: CreateUserInput): Promise<User> {
-    if (this.getUserByUsername(input.username)) {
-      throw new Error('Username already exists');
-    }
-
-    const user: User = {
-      ...input,
-      id: generateId(),
-      deviceIds: [],
-      createdAt: now(),
-      updatedAt: now(),
-    };
-
-    this.users.push(user);
-    await this.saveData();
-    return user;
-  }
-
-  async updateUser(id: string, input: UpdateUserInput): Promise<User> {
-    const index = this.users.findIndex((user) => user.id === id);
-    if (index === -1) throw new Error('User not found');
-
-    if (input.username && input.username !== this.users[index].username) {
-      if (this.getUserByUsername(input.username)) {
-        throw new Error('Username already exists');
-      }
-    }
-
-    const updatedUser = {
-      ...this.users[index],
-      ...input,
-      updatedAt: now(),
-    };
-
-    this.users[index] = updatedUser;
-    await this.saveData();
-    return updatedUser;
-  }
-
-  async deleteUser(id: string): Promise<void> {
-    const index = this.users.findIndex((user) => user.id === id);
-    if (index === -1) throw new Error('User not found');
-
-    // Remove user from devices
-    this.devices
-      .filter((device) => device.userId === id)
-      .forEach((device) => {
-        device.userId = undefined;
+  async getUsers(filters?: FilterOptions, sort?: SortOptions) {
+    try {
+      return await prisma.user.findMany({
+        include: {
+          devices: true,
+        },
+        orderBy: sort?.field ? {
+          [sort.field]: sort.direction,
+        } : undefined,
+        where: filters ? {
+          OR: [
+            { name: { contains: filters.search } },
+            { username: { contains: filters.search } },
+          ],
+        } : undefined,
       });
+    } catch (error) {
+      console.error('Error loading users:', error);
+      return [];
+    }
+  }
 
-    this.users.splice(index, 1);
-    await this.saveData();
+  async getUserById(id: string) {
+    return await prisma.user.findUnique({
+      where: { id },
+      include: {
+        devices: true,
+      },
+    });
+  }
+
+  async createUser(input: CreateUserInput) {
+    const userData: Prisma.UserCreateInput = {
+      name: input.name,
+      username: input.username,
+      password: input.password,
+      role: input.role,
+      devices: {
+        create: [],
+      },
+    };
+
+    return await prisma.user.create({
+      data: userData,
+      include: {
+        devices: true,
+      },
+    });
+  }
+
+  async updateUser(id: string, input: UpdateUserInput) {
+    return await prisma.user.update({
+      where: { id },
+      data: input,
+      include: {
+        devices: true,
+      },
+    });
+  }
+
+  async deleteUser(id: string) {
+    await prisma.user.delete({
+      where: { id },
+    });
   }
 
   // Groups
-  getGroups(filters?: FilterOptions, sort?: SortOptions): Group[] {
-    let filteredGroups = filters ? this.applyFilters(this.groups, filters) : this.groups;
-    return sort ? this.applySorting(filteredGroups, sort) : filteredGroups;
-  }
-
-  getGroupById(id: string): Group | undefined {
-    return this.groups.find((group) => group.id === id);
-  }
-
-  async createGroup(input: CreateGroupInput): Promise<Group> {
-    const group: Group = {
-      ...input,
-      id: generateId(),
-      deviceIds: [],
-      createdAt: now(),
-      updatedAt: now(),
-    };
-
-    this.groups.push(group);
-    await this.saveData();
-    return group;
-  }
-
-  async updateGroup(id: string, input: UpdateGroupInput): Promise<Group> {
-    const index = this.groups.findIndex((group) => group.id === id);
-    if (index === -1) throw new Error('Group not found');
-
-    const updatedGroup = {
-      ...this.groups[index],
-      ...input,
-      updatedAt: now(),
-    };
-
-    this.groups[index] = updatedGroup;
-
-    // Update device display names if prefix changed
-    if (input.prefix) {
-      this.devices
-        .filter((device) => device.groupId === id)
-        .forEach((device) => {
-          device.displayName = `${input.prefix}-${device.name}`;
-        });
-    }
-
-    await this.saveData();
-    return updatedGroup;
-  }
-
-  async deleteGroup(id: string): Promise<void> {
-    const index = this.groups.findIndex((group) => group.id === id);
-    if (index === -1) throw new Error('Group not found');
-
-    // Remove group from devices
-    this.devices
-      .filter((device) => device.groupId === id)
-      .forEach((device) => {
-        device.groupId = undefined;
-        device.displayName = device.name;
+  async getGroups(filters?: FilterOptions, sort?: SortOptions) {
+    try {
+      return await prisma.group.findMany({
+        include: {
+          devices: true,
+        },
+        orderBy: sort?.field ? {
+          [sort.field]: sort.direction,
+        } : undefined,
+        where: filters ? {
+          OR: [
+            { name: { contains: filters.search } },
+            { location: { contains: filters.search } },
+          ],
+        } : undefined,
       });
+    } catch (error) {
+      console.error('Error loading groups:', error);
+      return [];
+    }
+  }
 
-    this.groups.splice(index, 1);
-    await this.saveData();
+  async getGroupById(id: string) {
+    return await prisma.group.findUnique({
+      where: { id },
+      include: {
+        devices: true,
+      },
+    });
+  }
+
+  async createGroup(input: CreateGroupInput) {
+    const groupData: Prisma.GroupCreateInput = {
+      name: input.name,
+      location: input.location,
+      prefix: input.prefix,
+      devices: {
+        create: [],
+      },
+    };
+
+    return await prisma.group.create({
+      data: groupData,
+      include: {
+        devices: true,
+      },
+    });
+  }
+
+  async updateGroup(id: string, input: UpdateGroupInput) {
+    return await prisma.group.update({
+      where: { id },
+      data: input,
+      include: {
+        devices: true,
+      },
+    });
+  }
+
+  async deleteGroup(id: string) {
+    await prisma.group.delete({
+      where: { id },
+    });
   }
 
   // Devices
-  getDevices(filters?: FilterOptions, sort?: SortOptions): Device[] {
-    let filteredDevices = filters ? this.applyFilters(this.devices, filters) : this.devices;
-    return sort ? this.applySorting(filteredDevices, sort) : filteredDevices;
+  async getDevices(filters?: FilterOptions, sort?: SortOptions) {
+    try {
+      return await prisma.device.findMany({
+        include: {
+          user: true,
+          group: true,
+        },
+        orderBy: sort?.field ? {
+          [sort.field]: sort.direction,
+        } : undefined,
+        where: filters ? {
+          OR: [
+            { name: { contains: filters.search } },
+            { displayName: { contains: filters.search } },
+            { ipAddress: { contains: filters.search } },
+            { macAddress: { contains: filters.search } },
+          ],
+        } : undefined,
+      });
+    } catch (error) {
+      console.error('Error loading devices:', error);
+      return [];
+    }
   }
 
-  getDeviceById(id: string): Device | undefined {
-    return this.devices.find((device) => device.id === id);
+  async getDeviceById(id: string) {
+    return await prisma.device.findUnique({
+      where: { id },
+      include: {
+        user: true,
+        group: true,
+      },
+    });
   }
 
-  async createDevice(input: CreateDeviceInput): Promise<Device> {
-    const group = input.groupId ? this.getGroupById(input.groupId) : undefined;
-    const displayName = group ? `${group.prefix}-${input.name}` : input.name;
-
-    const device: Device = {
-      ...input,
-      id: generateId(),
-      displayName,
-      createdAt: now(),
-      updatedAt: now(),
+  async createDevice(input: CreateDeviceInput) {
+    const deviceData: Prisma.DeviceCreateInput = {
+      name: input.name,
+      displayName: input.name,
+      ipAddress: input.ipAddress,
+      macAddress: input.macAddress,
+      status: input.status,
+      lastActive: input.lastActive,
+      specs: input.specs || {},
+      user: {
+        connect: { id: input.userId || (await this.getDefaultUser()).id }
+      },
+      group: {
+        connect: { id: input.groupId || (await this.getDefaultGroup()).id }
+      },
     };
 
-    this.devices.push(device);
-
-    // Add device to group
-    if (group) {
-      group.deviceIds.push(device.id);
-    }
-
-    // Add device to user
-    if (input.userId) {
-      const user = this.getUserById(input.userId);
-      if (user) {
-        user.deviceIds.push(device.id);
-      }
-    }
-
-    await this.saveData();
-    return device;
+    return await prisma.device.create({
+      data: deviceData,
+      include: {
+        user: true,
+        group: true,
+      },
+    });
   }
 
-  async updateDevice(id: string, input: UpdateDeviceInput): Promise<Device> {
-    const index = this.devices.findIndex((device) => device.id === id);
-    if (index === -1) throw new Error('Device not found');
+  private async getDefaultUser() {
+    const defaultUser = await prisma.user.findFirst({
+      where: { role: 'admin' }
+    });
 
-    const oldDevice = this.devices[index];
-    const updatedDevice = { ...oldDevice, ...input, updatedAt: now() };
-
-    // Update display name if name changed or group changed
-    if (input.name || input.groupId !== oldDevice.groupId) {
-      const group = updatedDevice.groupId ? this.getGroupById(updatedDevice.groupId) : undefined;
-      updatedDevice.displayName = group ? `${group.prefix}-${updatedDevice.name}` : updatedDevice.name;
+    if (!defaultUser) {
+      return await prisma.user.create({
+        data: {
+          name: 'Admin',
+          username: 'admin',
+          password: 'admin123',
+          role: 'admin',
+        }
+      });
     }
 
-    // Update group relationships
-    if (input.groupId !== oldDevice.groupId) {
-      // Remove from old group
-      if (oldDevice.groupId) {
-        const oldGroup = this.getGroupById(oldDevice.groupId);
-        if (oldGroup) {
-          oldGroup.deviceIds = oldGroup.deviceIds.filter((deviceId) => deviceId !== id);
-        }
-      }
-
-      // Add to new group
-      if (updatedDevice.groupId) {
-        const newGroup = this.getGroupById(updatedDevice.groupId);
-        if (newGroup && !newGroup.deviceIds.includes(id)) {
-          newGroup.deviceIds.push(id);
-        }
-      }
-    }
-
-    // Update user relationships
-    if (input.userId !== oldDevice.userId) {
-      // Remove from old user
-      if (oldDevice.userId) {
-        const oldUser = this.getUserById(oldDevice.userId);
-        if (oldUser) {
-          oldUser.deviceIds = oldUser.deviceIds.filter((deviceId) => deviceId !== id);
-        }
-      }
-
-      // Add to new user
-      if (updatedDevice.userId) {
-        const newUser = this.getUserById(updatedDevice.userId);
-        if (newUser && !newUser.deviceIds.includes(id)) {
-          newUser.deviceIds.push(id);
-        }
-      }
-    }
-
-    this.devices[index] = updatedDevice;
-    await this.saveData();
-    return updatedDevice;
+    return defaultUser;
   }
 
-  async deleteDevice(id: string): Promise<void> {
-    const index = this.devices.findIndex((device) => device.id === id);
-    if (index === -1) throw new Error('Device not found');
+  private async getDefaultGroup() {
+    const defaultGroup = await prisma.group.findFirst();
 
-    const device = this.devices[index];
-
-    // Remove from group
-    if (device.groupId) {
-      const group = this.getGroupById(device.groupId);
-      if (group) {
-        group.deviceIds = group.deviceIds.filter((deviceId) => deviceId !== id);
-      }
+    if (!defaultGroup) {
+      return await prisma.group.create({
+        data: {
+          name: 'Default Group',
+          location: 'Default Location',
+          prefix: 'DEF',
+        }
+      });
     }
 
-    // Remove from user
-    if (device.userId) {
-      const user = this.getUserById(device.userId);
-      if (user) {
-        user.deviceIds = user.deviceIds.filter((deviceId) => deviceId !== id);
-      }
-    }
+    return defaultGroup;
+  }
 
-    this.devices.splice(index, 1);
-    await this.saveData();
+  async updateDevice(id: string, input: UpdateDeviceInput) {
+    const updateData: Prisma.DeviceUpdateInput = {
+      ...input,
+      user: input.userId ? {
+        connect: { id: input.userId }
+      } : undefined,
+      group: input.groupId ? {
+        connect: { id: input.groupId }
+      } : undefined,
+    };
+
+    return await prisma.device.update({
+      where: { id },
+      data: updateData,
+      include: {
+        user: true,
+        group: true,
+      },
+    });
+  }
+
+  async deleteDevice(id: string) {
+    await prisma.device.delete({
+      where: { id },
+    });
   }
 }
 
-// Exporta uma instância única do banco de dados
 export const db = new Database();

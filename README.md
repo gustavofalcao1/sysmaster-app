@@ -30,9 +30,10 @@ A modern web application for managing devices, users, and groups in a corporate 
   - Recent activities
 
 - 💾 **Data Storage**
-  - JSON file storage
-  - localStorage cache
-  - REST API
+  - SQLite database with Prisma ORM
+  - Type-safe database operations
+  - Automatic migrations
+  - Efficient queries with relations
 
 ## Technologies
 
@@ -49,8 +50,8 @@ A modern web application for managing devices, users, and groups in a corporate 
 
 - 🔧 **Backend**
   - Next.js API Routes
-  - Local file system
-  - localStorage cache
+  - Prisma ORM
+  - SQLite database
 
 ## Getting Started
 
@@ -72,12 +73,17 @@ cd sysmaster-app
 yarn install
 ```
 
-3. Start development server:
+3. Set up the database:
+```bash
+npx prisma migrate dev
+```
+
+4. Start development server:
 ```bash
 yarn dev
 ```
 
-4. Access http://localhost:3000
+5. Access http://localhost:3000
 
 ### Test Credentials
 
@@ -96,11 +102,32 @@ src/
   │   ├── layout/      # Layout components
   │   └── ui/          # UI components
   ├── context/         # React contexts
-  ├── data/            # JSON data files
   ├── lib/             # Utilities and services
-  ├── styles/          # Global styles
-  └── types/           # Type definitions
+  │   ├── prisma.ts    # Prisma client instance
+  │   └── database.ts  # Database operations
+  ├── prisma/          # Prisma schema and migrations
+  └── styles/          # Global styles
 ```
+
+## Database Schema
+
+The application uses Prisma with SQLite for data persistence. Here's the main schema structure:
+
+### User
+- Basic information (name, username, password)
+- Role-based access control
+- Relation to devices
+
+### Group
+- Organization unit for devices
+- Location tracking
+- Prefix management
+- Relation to devices
+
+### Device
+- Device information and status
+- Technical specifications
+- Relations to users and groups
 
 ## Development
 
@@ -120,9 +147,8 @@ src/
 - ✅ Group CRUD
 - ✅ Device CRUD
 - ✅ Dashboard with statistics
-- ✅ JSON data persistence
-- ✅ localStorage cache
-- ✅ REST API
+- ✅ Prisma ORM integration
+- ✅ SQLite database
 
 ### In Development
 - 🚧 Real-time updates
@@ -133,11 +159,11 @@ src/
 ## Contributing
 
 1. Fork the project
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the LICENSE file for details.

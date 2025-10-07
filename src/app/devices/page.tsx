@@ -1,19 +1,17 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { Plus, PencilSimple, Trash } from '@phosphor-icons/react';
-import { Device, CreateDeviceInput, Group, User } from '@/types';
+import { Device, Group, User } from '@/types';
 import { db } from '@/lib/database';
 import { Button } from '@/components/ui/Button';
-import { Modal } from '@/components/ui/Modal';
 import { Card } from '@/components/ui/Card';
 
 const PageHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: ${({ theme }) => theme.spacing.xl};
+  margin-bottom: 1rem;
 `;
 
 const Title = styled.h1`
@@ -24,13 +22,14 @@ const Title = styled.h1`
 const DeviceGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: ${({ theme }) => theme.spacing.lg};
+  gap: 1rem;
+  padding: 1rem;
 `;
 
 const DeviceCard = styled(Card)`
   display: flex;
   flex-direction: column;
-  gap: ${({ theme }) => theme.spacing.md};
+  gap: 1rem;
 `;
 
 const DeviceHeader = styled.div`
@@ -39,169 +38,105 @@ const DeviceHeader = styled.div`
   align-items: flex-start;
 `;
 
-const DeviceName = styled.h2`
-  color: ${({ theme }) => theme.colors.text.primary};
-  font-size: 1.25rem;
+const DeviceName = styled.h3`
+  font-size: 1.2rem;
+  font-weight: 600;
   margin: 0;
 `;
 
-const DeviceActions = styled.div`
-  display: flex;
-  gap: ${({ theme }) => theme.spacing.sm};
+const DeviceStatus = styled.span<{ status: string }>`
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  
+  ${({ status }) => {
+    switch (status) {
+      case 'online':
+        return 'background-color: #dcfce7; color: #166534;';
+      case 'offline':
+        return 'background-color: #fee2e2; color: #991b1b;';
+      case 'pending':
+        return 'background-color: #fef9c3; color: #854d0e;';
+      default:
+        return 'background-color: #f3f4f6; color: #374151;';
+    }
+  }}
 `;
 
 const DeviceInfo = styled.div`
   display: flex;
   flex-direction: column;
-  gap: ${({ theme }) => theme.spacing.xs};
-  color: ${({ theme }) => theme.colors.text.secondary};
+  gap: 0.5rem;
 `;
 
-const StatusBadge = styled.span<{ status: string }>`
-  padding: ${({ theme }) => `${theme.spacing.xs} ${theme.spacing.sm}`};
-  border-radius: ${({ theme }) => theme.borderRadius.sm};
+const InfoItem = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #6b7280;
   font-size: 0.875rem;
-  font-weight: 500;
-  background: ${({ status, theme }) => {
-    switch (status) {
-      case 'online':
-        return theme.colors.success + '20';
-      case 'offline':
-        return theme.colors.error + '20';
-      default:
-        return theme.colors.warning + '20';
-    }
-  }};
-  color: ${({ status, theme }) => {
-    switch (status) {
-      case 'online':
-        return theme.colors.success;
-      case 'offline':
-        return theme.colors.error;
-      default:
-        return theme.colors.warning;
-    }
-  }};
 `;
 
-const FormGroup = styled.div`
-  margin-bottom: ${({ theme }) => theme.spacing.md};
-
-  label {
-    display: block;
-    margin-bottom: ${({ theme }) => theme.spacing.xs};
-    color: ${({ theme }) => theme.colors.text.secondary};
-  }
-
-  input, select {
-    width: 100%;
-    padding: ${({ theme }) => theme.spacing.sm};
-    border: 1px solid ${({ theme }) => theme.colors.border};
-    border-radius: ${({ theme }) => theme.borderRadius.md};
-    background: ${({ theme }) => theme.colors.background.main};
-    color: ${({ theme }) => theme.colors.text.primary};
-
-    &:focus {
-      outline: none;
-      border-color: ${({ theme }) => theme.colors.primary};
-    }
-  }
+const ButtonGroup = styled.div`
+  display: flex;
+  gap: 0.5rem;
 `;
 
 export default function DevicesPage() {
-  const [devices, setDevices] = useState<Device[]>(db.getDevices());
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingDevice, setEditingDevice] = useState<Device | null>(null);
-  const [formData, setFormData] = useState<CreateDeviceInput>({
-    name: '',
-    ipAddress: '',
-    macAddress: '',
-    status: 'pending',
-    lastActive: new Date().toISOString(),
-  });
+  const [loading, setLoading] = useState(true);
+  const [devices, setDevices] = useState<Device[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [groups, setGroups] = useState<Group[]>([]);
 
-  const groups = db.getGroups();
-  const users = db.getUsers();
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      if (editingDevice) {
-        const updated = db.updateDevice(editingDevice.id, formData);
-        setDevices(db.getDevices());
-        setEditingDevice(null);
-      } else {
-        db.createDevice(formData);
-        setDevices(db.getDevices());
-      }
-      setIsModalOpen(false);
-      setFormData({
-        name: '',
-        ipAddress: '',
-        macAddress: '',
-        status: 'pending',
-        lastActive: new Date().toISOString(),
-      });
-    } catch (error) {
-      alert(error instanceof Error ? error.message : 'An error occurred');
-    }
-  };
-
-  const handleEdit = (device: Device) => {
-    setEditingDevice(device);
-    setFormData({
-      name: device.name,
-      ipAddress: device.ipAddress,
-      macAddress: device.macAddress,
-      status: device.status,
-      groupId: device.groupId,
-      userId: device.userId,
-      lastActive: device.lastActive,
-      specs: device.specs,
-    });
-    setIsModalOpen(true);
-  };
-
-  const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this device?')) {
+  useEffect(() => {
+    async function loadData() {
       try {
-        db.deleteDevice(id);
-        setDevices(db.getDevices());
+        setLoading(true);
+        const [devicesData, usersData, groupsData] = await Promise.all([
+          db.getDevices(),
+          db.getUsers(),
+          db.getGroups()
+        ]);
+        
+        setDevices(devicesData);
+        setUsers(usersData);
+        setGroups(groupsData);
       } catch (error) {
-        alert(error instanceof Error ? error.message : 'An error occurred');
+        console.error('Error loading data:', error);
+      } finally {
+        setLoading(false);
       }
+    }
+
+    loadData();
+  }, []);
+
+  const handleEdit = async (device: Device) => {
+    // TODO: Implement edit functionality
+    console.log('Edit device:', device);
+  };
+
+  const handleDelete = async (device: Device) => {
+    if (!window.confirm('Are you sure you want to delete this device?')) return;
+
+    try {
+      await db.deleteDevice(device.id);
+      setDevices(devices.filter(d => d.id !== device.id));
+    } catch (error) {
+      console.error('Error deleting device:', error);
     }
   };
 
-  const getGroupName = (groupId?: string) => {
-    if (!groupId) return 'None';
-    const group = db.getGroupById(groupId);
-    return group ? group.name : 'Unknown';
-  };
-
-  const getUserName = (userId?: string) => {
-    if (!userId) return 'None';
-    const user = db.getUserById(userId);
-    return user ? user.name : 'Unknown';
-  };
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div>
       <PageHeader>
         <Title>Devices</Title>
-        <Button onClick={() => {
-          setEditingDevice(null);
-          setFormData({
-            name: '',
-            ipAddress: '',
-            macAddress: '',
-            status: 'pending',
-            lastActive: new Date().toISOString(),
-          });
-          setIsModalOpen(true);
-        }}>
-          <Plus weight="bold" /> Add Device
-        </Button>
+        <Button onClick={() => {}}>Add Device</Button>
       </PageHeader>
 
       <DeviceGrid>
@@ -210,126 +145,51 @@ export default function DevicesPage() {
             <DeviceHeader>
               <div>
                 <DeviceName>{device.displayName}</DeviceName>
-                <StatusBadge status={device.status}>
-                  {device.status.charAt(0).toUpperCase() + device.status.slice(1)}
-                </StatusBadge>
+                <div className="text-sm text-gray-500">{device.name}</div>
               </div>
-              <DeviceActions>
-                <Button variant="secondary" onClick={() => handleEdit(device)}>
-                  <PencilSimple weight="bold" />
-                </Button>
-                <Button variant="danger" onClick={() => handleDelete(device.id)}>
-                  <Trash weight="bold" />
-                </Button>
-              </DeviceActions>
+              <DeviceStatus status={device.status}>{device.status}</DeviceStatus>
             </DeviceHeader>
+
             <DeviceInfo>
-              <div>IP: {device.ipAddress}</div>
-              <div>MAC: {device.macAddress}</div>
-              <div>Group: {getGroupName(device.groupId)}</div>
-              <div>Responsible: {getUserName(device.userId)}</div>
-              <div>Last Active: {new Date(device.lastActive).toLocaleString()}</div>
-              {device.specs && (
-                <>
-                  <div>CPU: {device.specs.cpu}</div>
-                  <div>Memory: {device.specs.memory}</div>
-                  <div>Disk: {device.specs.disk}</div>
-                  <div>OS: {device.specs.os}</div>
-                </>
-              )}
+              <InfoItem>
+                <span>Group</span>
+                <span>
+                  {device.groupId
+                    ? groups.find(g => g.id === device.groupId)?.name || 'Unknown'
+                    : 'None'}
+                </span>
+              </InfoItem>
+              <InfoItem>
+                <span>User</span>
+                <span>
+                  {device.userId
+                    ? users.find(u => u.id === device.userId)?.name || 'Unknown'
+                    : 'None'}
+                </span>
+              </InfoItem>
+              <InfoItem>
+                <span>Last Update</span>
+                <span>{new Date(device.updatedAt).toLocaleString()}</span>
+              </InfoItem>
             </DeviceInfo>
+
+            <ButtonGroup>
+              <Button
+                variant="secondary"
+                onClick={() => handleEdit(device)}
+              >
+                Edit
+              </Button>
+              <Button
+                variant="danger"
+                onClick={() => handleDelete(device)}
+              >
+                Delete
+              </Button>
+            </ButtonGroup>
           </DeviceCard>
         ))}
       </DeviceGrid>
-
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setEditingDevice(null);
-          setFormData({
-            name: '',
-            ipAddress: '',
-            macAddress: '',
-            status: 'pending',
-            lastActive: new Date().toISOString(),
-          });
-        }}
-        title={editingDevice ? 'Edit Device' : 'Add Device'}
-      >
-        <form onSubmit={handleSubmit}>
-          <FormGroup>
-            <label>Name</label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              required
-            />
-          </FormGroup>
-          <FormGroup>
-            <label>IP Address</label>
-            <input
-              type="text"
-              value={formData.ipAddress}
-              onChange={(e) => setFormData({ ...formData, ipAddress: e.target.value })}
-              required
-            />
-          </FormGroup>
-          <FormGroup>
-            <label>MAC Address</label>
-            <input
-              type="text"
-              value={formData.macAddress}
-              onChange={(e) => setFormData({ ...formData, macAddress: e.target.value })}
-              required
-            />
-          </FormGroup>
-          <FormGroup>
-            <label>Status</label>
-            <select
-              value={formData.status}
-              onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-              required
-            >
-              <option value="online">Online</option>
-              <option value="offline">Offline</option>
-              <option value="pending">Pending</option>
-            </select>
-          </FormGroup>
-          <FormGroup>
-            <label>Group</label>
-            <select
-              value={formData.groupId || ''}
-              onChange={(e) => setFormData({ ...formData, groupId: e.target.value || undefined })}
-            >
-              <option value="">None</option>
-              {groups.map((group) => (
-                <option key={group.id} value={group.id}>
-                  {group.name}
-                </option>
-              ))}
-            </select>
-          </FormGroup>
-          <FormGroup>
-            <label>Responsible User</label>
-            <select
-              value={formData.userId || ''}
-              onChange={(e) => setFormData({ ...formData, userId: e.target.value || undefined })}
-            >
-              <option value="">None</option>
-              {users.map((user) => (
-                <option key={user.id} value={user.id}>
-                  {user.name}
-                </option>
-              ))}
-            </select>
-          </FormGroup>
-          <Button type="submit" style={{ width: '100%' }}>
-            {editingDevice ? 'Update' : 'Create'}
-          </Button>
-        </form>
-      </Modal>
     </div>
   );
 }
